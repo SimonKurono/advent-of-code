@@ -1,5 +1,4 @@
-import re
-
+import math
 
 raw = """1090286-1131879,3259566-3404881,138124-175118,266204727-266361099,
 16765-24272,7657360692-7657593676,88857504-88926597,6869078-6903096,
@@ -10,24 +9,25 @@ raw = """1090286-1131879,3259566-3404881,138124-175118,266204727-266361099,
 39839-51927,3246-5037,174-260,439715-473176,187287-262190,
 348-535,58956-78301,4388160-4505757,512092-584994,13388753-13534387""".replace("\n","")
 
-
-def is_repeated_twice(n: int) -> bool:
+def is_invalid(n: int) -> bool:
     s = str(n)
-  
-    if len(s) % 2 != 0:
-        return False
-    half = len(s) // 2
-    return s[:half] == s[half:]
+    L = len(s)
+
+    for d in range(1, L//2 + 1):
+        if L % d == 0:
+            block = s[:d]
+            if block * (L // d) == s:
+                return True
+    return False
 
 total = 0
-
 
 for segment in raw.split(","):
     if not segment.strip():
         continue
     lo, hi = map(int, segment.split("-"))
     for x in range(lo, hi + 1):
-        if is_repeated_twice(x):
+        if is_invalid(x):
             total += x
 
 print(total)
