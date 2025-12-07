@@ -55,7 +55,57 @@ def count_fresh_ids(ranges, ids):
     return fresh_count
 
 
+
+"""
+Part 2 Solution
+"""
+
+def parse_ranges(filename: str):
+    ranges = []
+    with open(filename, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line == "":      # stop at blank line; after this are IDs we don't care about
+                break
+            a, b = line.split("-")
+            ranges.append((int(a), int(b)))
+    return ranges
+
+
+def merge_ranges(ranges):
+    """Merge overlapping [start, end] intervals."""
+    if not ranges:
+        return []
+
+    ranges.sort()  # sort by start, then end
+    merged = [list(ranges[0])]
+
+    for start, end in ranges[1:]:
+        last_start, last_end = merged[-1]
+        if start <= last_end:  # overlap
+            merged[-1][1] = max(last_end, end)
+        else:
+            merged.append([start, end])
+
+    return merged
+
+
+def count_fresh_ids_from_ranges(filename: str) -> int:
+    ranges = parse_ranges(filename)
+    merged = merge_ranges(ranges)
+    # sum of lengths of merged intervals
+    total = sum(end - start + 1 for start, end in merged)
+    return total
+
+
+
+    
+
+
 if __name__ == "__main__":
     ranges, ids = parse_input("day5/input.txt")
     answer = count_fresh_ids(ranges, ids)
     print(answer)
+
+    ans = count_fresh_ids_from_ranges("day5/input.txt")
+    print(ans)
