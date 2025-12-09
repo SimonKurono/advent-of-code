@@ -3,105 +3,129 @@ import operator
 
 def read_grid(filename="day6/input.txt"):
     with open(filename, "r") as f:
-        # Keep trailing spaces (important!), just strip newline
         lines = [line.rstrip("\n") for line in f.readlines()]
-
-    # Remove completely empty lines if any (optional/safe)
     lines = [ln for ln in lines if ln.strip() != ""]
-
     width = max(len(ln) for ln in lines)
-    # Pad all lines to same width with spaces on the right
-    padded = [ln.ljust(width, " ") for ln in lines]
-    return padded  # list of strings, each same length
+    return [ln.ljust(width, " ") for ln in lines]
 
-
-def find_problem_columns(grid):
-    """
-    Returns a list of (start, end) column indices (end exclusive),
-    each representing one vertical problem block.
-    """
+def find_blocks(grid):
     h = len(grid)
     w = len(grid[0])
 
-    # A separator column is all spaces
-    def is_separator(col):
-        return all(grid[row][col] == " " for row in range(h))
+    def is_sep(c):
+        return all(grid[r][c] == " " for r in range(h))
 
     blocks = []
     inside = False
-    start = 0
 
     for j in range(w):
-        sep = is_separator(j)
-        if not inside and not sep:
-            # We are entering a new problem block
+        if not inside and not is_sep(j):
             inside = True
             start = j
-        elif inside and sep:
-            # We are leaving a problem block
+        elif inside and is_sep(j):
             blocks.append((start, j))
             inside = False
 
-    # If we ended still inside a block, close it
     if inside:
         blocks.append((start, w))
 
     return blocks
 
-
-def parse_problem(grid, col_start, col_end):
-    """
-    For a single vertical block [col_start, col_end),
-    extract the operator from the last row and the numbers
-    from rows above.
-    """
+def parse_problem(grid, cs, ce):
     h = len(grid)
-
-    # Operator is in the last row within [col_start, col_end)
-    last_row = grid[h - 1][col_start:col_end]
-    op_char = None
-    for ch in last_row:
-        if ch in "+*":
-            op_char = ch
-            break
-    if op_char is None:
-        raise ValueError(f"No operator found in columns {col_start}-{col_end}")
-
-    # Extract numbers from rows 0..h-2
+    op = next(ch for ch in grid[h - 1][cs:ce] if ch in "+*")
     nums = []
     for r in range(h - 1):
-        slice_str = grid[r][col_start:col_end]
-        s = slice_str.strip()
-        if s:  # non-empty
+        s = grid[r][cs:ce].strip()
+        if s:
             nums.append(int(s))
+    return op, nums
 
-    if not nums:
-        raise ValueError(f"No numbers found for problem in columns {col_start}-{col_end}")
-
-    return op_char, nums
-
-
-def eval_problem(op_char, nums):
-    if op_char == "+":
+def eval_problem(op, nums):
+    if op == "+":
         return sum(nums)
-    elif op_char == "*":
-        return reduce(operator.mul, nums, 1)
-    else:
-        raise ValueError(f"Unknown operator: {op_char}")
-
+    return reduce(operator.mul, nums, 1)
 
 def main():
-    grid = read_grid("day6/input.txt")
-    blocks = find_problem_columns(grid)
-
+    grid = read_grid()
+    blocks = find_blocks(grid)
     total = 0
-    for (cs, ce) in blocks:
+
+    for cs, ce in blocks:
         op, nums = parse_problem(grid, cs, ce)
-        result = eval_problem(op, nums)
-        total += result
+        total += eval_problem(op, nums)
 
     print(total)
 
+if __name__ == "__main__":
+    main()
+
+
+#part 2
+from functools import reduce
+import operator
+
+def read_grid(filename="day6/input.txt"):
+    with open(filename, "r") as f:
+        lines = [line.rstrip("\n") for line in f.readlines()]
+    lines = [ln for ln in lines if ln.strip() != ""]
+    width = max(len(ln) for ln in lines)
+    return [ln.ljust(width, " ") for ln in lines]
+
+def find_blocks(grid):
+    h = len(grid)
+    w = len(grid[0])
+
+    def is_sep(c):
+        return all(grid[r][c] == " " for r in range(h))
+
+    blocks = []
+    inside = False
+
+    for j in range(w):
+        if not inside and not is_sep(j):
+            inside = True
+            start = j
+        elif inside and is_sep(j):
+            blocks.append((start, j))
+            inside = False
+
+    if inside:
+        blocks.append((start, w))
+
+    return blocks
+
+def parse_problem(grid, cs, ce):
+    h = len(grid)
+    op = next(ch for ch in grid[h - 1][cs:ce] if ch in "+*")
+    numbers = []
+
+    for c in range(ce - 1, cs - 1, -1):
+        digits = []
+        for r in range(h - 1):
+            ch = grid[r][c]
+            if ch != " ":
+                digits.append(ch)
+        if digits:
+            numbers.append(int("".join(digits)))
+
+    return op, numbers
+
+def eval_problem(op, nums):
+    if op == "+":
+        return sum(nums)
+    return reduce(operator.mul, nums, 1)
+
+def main():
+    grid = read_grid()
+    blocks = find_blocks(grid)
+    total = 0
+
+    for cs, ce in blocks:
+        op, nums = parse_problem(grid, cs, ce)
+        total += eval_problem(op, nums)
+
+    print(total)
 
 if __name__ == "__main__":
     main()
