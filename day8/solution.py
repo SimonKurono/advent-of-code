@@ -50,7 +50,9 @@ sizes = sorted(cnt.values(), reverse=True)
 print(prod(sizes[:3]))
 
 
-#part 2:
+"""
+Part 2:
+"""
 import heapq
 
 class DSU:
@@ -93,6 +95,7 @@ for i in range(n):
         pairs.append((dx*dx + dy*dy + dz*dz, i, j))
 
 pairs.sort(key=lambda t: t[0])
+
 
 dsu = DSU(n)
 last_i = last_j = None
